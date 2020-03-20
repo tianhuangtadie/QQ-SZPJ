@@ -112,6 +112,8 @@ public class MainActivity extends AppCompatActivity {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+
+
             }
         });
 
@@ -138,7 +140,9 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-        
+
+        FileUtils.getAPPLocalVersion(MainActivity.this);
+
 
         button.setOnTouchListener(new View.OnTouchListener() {
             private float lastX; //上一次位置的X.Y坐标
@@ -199,6 +203,8 @@ public class MainActivity extends AppCompatActivity {
                 boolean is = FileUtils.getAll(FileUtils.mFilePath);
                 if (is) {
                     ToastShow("破解完成");
+                } else {
+                    ToastShow("破解失败");
                 }
             }
         });
@@ -206,7 +212,11 @@ public class MainActivity extends AppCompatActivity {
         but1.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                startActivity(new Intent(MainActivity.this, SZ.class));
+                Intent intent = new Intent();
+                intent.setClass(getApplicationContext(), SZ.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                getApplicationContext().startActivity(intent);
+//                ToastShow("我经过了！");
                 return true;
             }
         });

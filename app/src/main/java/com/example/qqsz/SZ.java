@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.DisplayMetrics;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -22,7 +23,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SZ extends AppCompatActivity {
-
 
     private RecyclerView mRecyclerView;
     private int leftRight;
@@ -50,6 +50,10 @@ public class SZ extends AppCompatActivity {
         DisplayMetrics mMetricd = new DisplayMetrics();
         manager.getDefaultDisplay().getMetrics(mMetricd);
         final List<String> list = FileUtils.getSZ();
+        if (list.size() == 0) {
+            Toast.makeText(this, "你一张都还没破解！", Toast.LENGTH_SHORT).show();
+            return;
+        }
         mRecyclerViewAdapter = new RecyclerViewAdapter(this, (ArrayList<String>) list, mMetricd.widthPixels, spanCount, leftRight, topBottom);
         mRecyclerView.addItemDecoration(new MyDividerItem(leftRight, topBottom));
         mRecyclerView.setAdapter(mRecyclerViewAdapter);
@@ -96,8 +100,7 @@ public class SZ extends AppCompatActivity {
     public static Bitmap getLoacalBitmap(String url) {
         try {
             FileInputStream fis = new FileInputStream(url);
-            return BitmapFactory.decodeStream(fis);  ///把流转化为Bitmap图片        
-
+            return BitmapFactory.decodeStream(fis);  ///把流转化为Bitmap图片
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             return null;

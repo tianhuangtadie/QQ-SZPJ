@@ -5,6 +5,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -80,6 +81,9 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
     public void onBindViewHolder(final ViewHolder holder, final int position) {
+        if (!FileUtils.isImageFile(mData.get(position))) {
+            return;
+        }
         //获取屏幕宽度
         int screenWidth = LayoutWidth;
         //获取单张图片宽度
@@ -98,7 +102,6 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
                     mOnItemClickListener.onClick(position);
                 }
             });
-
             holder.imageView.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
@@ -108,6 +111,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
                 }
             });
         }
+//        Log.e(TAG, "onBindViewHolder: =============" + FileUtils.isImageFile(mData.get(position)));
     }
 
     @Override
@@ -124,8 +128,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     public static Bitmap getLoacalBitmap(String url) {
         try {
             FileInputStream fis = new FileInputStream(url);
-            return BitmapFactory.decodeStream(fis);  ///把流转化为Bitmap图片        
-
+            return BitmapFactory.decodeStream(fis);  ///把流转化为Bitmap图片
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             return null;

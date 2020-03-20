@@ -1,5 +1,9 @@
 package com.example.qqsz;
 
+import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.graphics.BitmapFactory;
 import android.os.Environment;
 import android.util.Log;
 
@@ -12,11 +16,8 @@ import java.util.List;
 public class FileUtils {
 
     public static String mFilePath = Environment.getExternalStorageDirectory() + "/tencent/MobileQQ/chatpic/chatimg";
-
     public static String path = Environment.getExternalStorageDirectory() + "";
-
     private static String szpath = path + "/闪照破解";
-
 
     public static boolean getAll(String path) {
         File file = new File(path);
@@ -35,10 +36,11 @@ public class FileUtils {
                         renameFile(files[i].getParent(), files[i].getName(), newFileName);
                         try {
                             changeDirectory(newFileName, files[i].getParent(), isExistDir("/闪照破解"), true);
+                            return isImageFile(szpath + "/" + newFileName);
                         } catch (IOException e) {
                             e.printStackTrace();
+                            return false;
                         }
-                        return true;
                     }
                 } else {
                     getAll(path + "//" + files[i].getName());
@@ -97,7 +99,6 @@ public class FileUtils {
 
     public static String isExistDir(String saveDir) throws IOException {
         File downloadFile = new File(path, saveDir);
-
         if (!downloadFile.mkdirs()) {
             downloadFile.createNewFile();
         }
@@ -126,7 +127,7 @@ public class FileUtils {
 
     public static List<String> getSZ() {
         try {
-            isExistDir(szpath);
+            isExistDir("/闪照破解");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -164,4 +165,28 @@ public class FileUtils {
         }
     }
 
+    //获取apk的版本号 currentVersionCode
+    public static void getAPPLocalVersion(Context ctx) {
+        PackageManager manager = ctx.getPackageManager();
+        try {
+            PackageInfo info = manager.getPackageInfo("com.tencent.mobileqq", 0);
+            int localVersionCode = info.versionCode; // 版本号
+            if (localVersionCode > 1345) {
+                mFilePath = Environment.getExternalStorageDirectory() + "/Android/data/com.tencent.mobileqq/Tencent/MobileQQ/chatpic/chatimg";
+            }
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static boolean isImageFile(String filePath) {
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(filePath, options);
+        if (options.outWidth == -1) {
+            deleteFiles(filePath);
+            return false;
+        }
+        return true;
+    }
 }
