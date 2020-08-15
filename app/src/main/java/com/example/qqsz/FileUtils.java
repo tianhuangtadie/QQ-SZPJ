@@ -1,9 +1,11 @@
 package com.example.qqsz;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Environment;
 import android.util.Log;
 
@@ -19,7 +21,7 @@ public class FileUtils {
     public static String path = Environment.getExternalStorageDirectory() + "";
     private static String szpath = path + "/闪照破解";
 
-    public static boolean getAll(String path) {
+    public static boolean getAll(Context context, String path) {
         File file = new File(path);
         //判断是不是文件夹
         if (!file.isDirectory()) {
@@ -36,18 +38,23 @@ public class FileUtils {
                         renameFile(files[i].getParent(), files[i].getName(), newFileName);
                         try {
                             changeDirectory(newFileName, files[i].getParent(), isExistDir("/闪照破解"), true);
-                            return isImageFile(szpath + "/" + newFileName);
+                            boolean imageFile = isImageFile(szpath + "/" + newFileName);
+                            if (imageFile) {
+                                scanFile(context, szpath + "/" + newFileName);
+                            }
+                            return imageFile;
                         } catch (IOException e) {
                             e.printStackTrace();
                             return false;
                         }
                     }
                 } else {
-                    getAll(path + "//" + files[i].getName());
+                    boolean all = getAll(context, path + "//" + files[i].getName());
+                    return all;
                 }
             }
         }
-        return true;
+        return false;
     }
 
     public static boolean deleteAllFiles(File root) {
@@ -188,5 +195,11 @@ public class FileUtils {
             return false;
         }
         return true;
+    }
+
+    public static void scanFile(Context context, String filePath) {
+        //保存图片后发送广播通知更新数据库
+        Uri uri = Uri.fromFile(new File(filePath));
+        context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, uri));
     }
 }

@@ -1,5 +1,6 @@
 package com.example.qqsz;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -27,6 +28,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -95,14 +97,14 @@ public class MainActivity extends AppCompatActivity {
                 lp.x = 0;
                 lp.y = 0;
                 //悬浮窗的宽高
-//        lp.width = WindowManager.LayoutParams.MATCH_PARENT;
-//        lp.height = WindowManager.LayoutParams.MATCH_PARENT;
                 lp.width = 300;
                 lp.height = 300;
                 lp.format = PixelFormat.TRANSPARENT;
                 if (flag) {
                     windowManager.addView(relativeLayoutButoon, lp);
+                    Toast.makeText(getApplication(), "长按返回可关闭悬浮窗", Toast.LENGTH_SHORT).show();
                     flag = false;
+                    finish();
                 }
                 try {
                     PackageManager packageManager = getPackageManager();
@@ -112,8 +114,6 @@ public class MainActivity extends AppCompatActivity {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-
-
             }
         });
 
@@ -200,7 +200,7 @@ public class MainActivity extends AppCompatActivity {
         but1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                boolean is = FileUtils.getAll(FileUtils.mFilePath);
+                boolean is = FileUtils.getAll(MainActivity.this, FileUtils.mFilePath);
                 if (is) {
                     ToastShow("破解完成");
                 } else {
@@ -238,6 +238,15 @@ public class MainActivity extends AppCompatActivity {
                 lp.height = 200;
                 windowManager.removeView(relativeLayout);
                 windowManager.addView(relativeLayoutButoon, lp);
+            }
+        });
+
+        but3.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                windowManager.removeView(relativeLayout);
+                flag = true;
+                return false;
             }
         });
     }
