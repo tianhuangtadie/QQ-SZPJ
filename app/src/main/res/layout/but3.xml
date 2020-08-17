@@ -3,12 +3,23 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
+    android:background="@drawable/bg_shape"
     tools:context=".MainActivity">
 
+    <Switch
+        android:id="@+id/separation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:text="破解的是分身吗？"
+        android:thumb="@drawable/switch_custom_thumb_selector"
+        android:track="@drawable/switch_custom_track_selector" />
+    
     <LinearLayout
         android:id="@+id/line1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_below="@+id/separation"
         android:layout_centerInParent="true">
 
         <Button
@@ -33,5 +44,5 @@
             android:layout_marginLeft="10dp"
             android:text="返回" />
     </LinearLayout>
-
+    
 </RelativeLayout>

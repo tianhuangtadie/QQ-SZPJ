@@ -53,10 +53,29 @@
         android:text="\n1、此版本适用于最新版QQ版本\n2、点击进入破解按钮即可进入破解模式\n3、破解前先初始化，初始化完成后，点开闪照，会出现'按住屏幕可查看5秒',不要点击！(否则不能破解)再点击开始破解，提示破解完成则破解成功" />
 
     <TextView
+        android:id="@+id/ts1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/jc"
         android:text="提示：长按 开始破解 按钮可进入 查看闪照界面"
         android:textColor="@color/colorPrimary"
+        android:textSize="15sp" />
+
+    <TextView
+        android:id="@+id/ts2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/ts1"
+        android:text="提示：长按 返回 按钮可关闭悬浮窗"
+        android:textColor="@color/colorPrimary"
+        android:textSize="15sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/ts2"
+        android:text="仅供学习交流，请勿用于商用"
+        android:textColor="#D60808"
+        android:layout_centerHorizontal="true"
         android:textSize="15sp" />
 </RelativeLayout>

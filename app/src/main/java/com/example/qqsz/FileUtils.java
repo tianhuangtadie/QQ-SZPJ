@@ -8,20 +8,29 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Environment;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.List;
 
 public class FileUtils {
 
-    public static String mFilePath = Environment.getExternalStorageDirectory() + "/tencent/MobileQQ/chatpic/chatimg";
-    public static String path = Environment.getExternalStorageDirectory() + "";
-    private static String szpath = path + "/闪照破解";
+    private static Context mContext;
+    private static String basePath = Environment.getExternalStorageDirectory() + "";
+    private static String buildVersion = "/tencent/MobileQQ/chatpic/chatimg";
+    private static String savePath = Environment.getExternalStorageDirectory() + "";
+    private static String szpath = savePath + "/闪照破解";
+
+    public static String mFilePath = basePath + buildVersion;
 
     public static boolean getAll(Context context, String path) {
+        mContext = context;
         File file = new File(path);
         //判断是不是文件夹
         if (!file.isDirectory()) {
@@ -57,6 +66,9 @@ public class FileUtils {
         return false;
     }
 
+    /**
+     * 删除指定目录下所有文件
+     */
     public static boolean deleteAllFiles(File root) {
         File files[] = root.listFiles();
         if (files != null)
@@ -80,32 +92,31 @@ public class FileUtils {
         return true;
     }
 
-
+    /**
+     * 删除指定文件
+     */
     public static boolean deleteFiles(String root) {
         File file = new File(root);
         return file.delete();
     }
 
 
-    //剪切文件
+    /**
+     * 剪切文件
+     */
     public static void changeDirectory(String filename, String oldpath, String newpath, boolean cover) {
         if (!oldpath.equals(newpath)) {
-            File oldfile = new File(oldpath + "/" + filename);
             File newfile = new File(newpath + "/" + filename);
-            if (newfile.exists()) {//若在待转移目录下，已经存在待转移文件
-                if (cover)//覆盖
-                    oldfile.renameTo(newfile);
-                else
-                    System.out.println("在新目录下已经存在：" + filename);
-            } else {
-                oldfile.renameTo(newfile);
-            }
+//            Toast.makeText(mContext, "移动后的路径=" + newfile.getPath(), Toast.LENGTH_SHORT).show();
+            moveFile(oldpath + "/" + filename, newpath + "/" + filename);
         }
     }
 
-
+    /**
+     * 判断文件夹是否存在，不存在创建
+     */
     public static String isExistDir(String saveDir) throws IOException {
-        File downloadFile = new File(path, saveDir);
+        File downloadFile = new File(savePath, saveDir);
         if (!downloadFile.mkdirs()) {
             downloadFile.createNewFile();
         }
@@ -113,7 +124,9 @@ public class FileUtils {
         return savePath;
     }
 
-    //文件重命名 
+    /**
+     * 文件重命名
+     */
     public static void renameFile(String path, String oldname, String newname) {
         if (!oldname.equals(newname)) {//新的文件名和以前文件名不同时,才有必要进行重命名 
             File oldfile = new File(path + "/" + oldname);
@@ -125,6 +138,7 @@ public class FileUtils {
                 System.out.println(newname + "已经存在！");
             else {
                 oldfile.renameTo(newfile);
+//                Toast.makeText(mContext, "重命名成功！", Toast.LENGTH_SHORT).show();
             }
         } else {
             System.out.println("新文件名和旧文件名相同...");
@@ -179,13 +193,63 @@ public class FileUtils {
             PackageInfo info = manager.getPackageInfo("com.tencent.mobileqq", 0);
             int localVersionCode = info.versionCode; // 版本号
             if (localVersionCode > 1345) {
-                mFilePath = Environment.getExternalStorageDirectory() + "/Android/data/com.tencent.mobileqq/Tencent/MobileQQ/chatpic/chatimg";
+                buildVersion = "/Android/data/com.tencent.mobileqq/Tencent/MobileQQ/chatpic/chatimg";
             }
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
     }
 
+    /**
+     * 设置基础路径
+     */
+    public static boolean setBasePath(Context context, boolean isSeparation) {
+        if (isSeparation) {
+            String brand = android.os.Build.BRAND;
+            Toast.makeText(context, brand.toLowerCase(), Toast.LENGTH_SHORT).show();
+            switch (brand.toLowerCase()) {
+                case "honor":
+                    basePath = basePath.replace("0", "128");
+                    break;
+                case "huawei":
+                    basePath = basePath.replace("0", "128");
+                    mFilePath = basePath + buildVersion;
+                    if (!new File(mFilePath).isDirectory()) {
+                        basePath = Environment.getExternalStorageDirectory().toString().replace("0", "10");
+                    }
+                    mFilePath = basePath + buildVersion;
+                    if (!new File(mFilePath).isDirectory()) {
+                        basePath = Environment.getExternalStorageDirectory().toString().replace("0", "999");
+                    }
+                    break;
+                case "vivo":
+                case "oppo":
+                    basePath = basePath.replace("0", "999");
+                    mFilePath = basePath + buildVersion;
+                    if (!new File(mFilePath).isDirectory()) {
+                        basePath = Environment.getExternalStorageDirectory() + "/AppClone";
+                    }
+                    break;
+                case "xiaomi":
+                case "oneplus":
+                    basePath = basePath.replace("0", "999");
+                    break;
+                case "360":
+                case "meizu":
+                case "samsung":
+                    basePath = Environment.getExternalStorageDirectory().toString();
+                    break;
+            }
+        } else {
+            basePath = Environment.getExternalStorageDirectory().toString();
+        }
+        mFilePath = basePath + buildVersion;
+        return new File(mFilePath).isDirectory();
+    }
+
+    /**
+     * 判断是不是图片文件
+     */
     public static boolean isImageFile(String filePath) {
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
@@ -197,9 +261,55 @@ public class FileUtils {
         return true;
     }
 
+    /**
+     * 移动图片到相册
+     */
     public static void scanFile(Context context, String filePath) {
         //保存图片后发送广播通知更新数据库
         Uri uri = Uri.fromFile(new File(filePath));
         context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, uri));
+    }
+
+    /**
+     * 复制文件
+     *
+     * @param oldPath
+     * @param newPath
+     */
+    public static void copyFile(String oldPath, String newPath) {
+        try {
+            int bytesum = 0;
+            int byteread = 0;
+            File oldfile = new File(oldPath);
+//            Toast.makeText(mContext, "移动前的路径=" + oldfile.getPath(), Toast.LENGTH_SHORT).show();
+            if (oldfile.exists()) {  //文件存在时    
+                //读入原文件     
+                InputStream inStream = new FileInputStream(oldPath);
+                FileOutputStream fs = new FileOutputStream(newPath);
+                byte[] buffer = new byte[1444];
+                int length;
+                while ((byteread = inStream.read(buffer)) != -1) {
+                    bytesum += byteread;  //字节数 文件大小      
+                    System.out.println(bytesum);
+                    fs.write(buffer, 0, byteread);
+                }
+                inStream.close();
+            }
+        } catch (Exception e) {
+            System.out.println("复制单个文件操作出错");
+            e.printStackTrace();
+
+        }
+    }
+
+    /**
+     * 移动文件到指定路径
+     *
+     * @param oldPath
+     * @param newPath
+     */
+    public static void moveFile(String oldPath, String newPath) {
+        copyFile(oldPath, newPath);
+        deleteFiles(oldPath);
     }
 }

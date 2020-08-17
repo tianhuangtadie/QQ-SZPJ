@@ -1,12 +1,12 @@
 package com.example.qqsz;
 
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.PixelFormat;
 import android.net.Uri;
@@ -15,20 +15,23 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.Settings;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.LinearLayout;
+import android.widget.CompoundButton;
 import android.widget.RelativeLayout;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,8 +39,8 @@ public class MainActivity extends AppCompatActivity {
     private WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
     private static WindowManager windowManager;
     private RelativeLayout relativeLayout, relativeLayoutButoon, relativeLayoutToast;
-    private LinearLayout line1;
     private Button button, but1, but2, but3, submit, ck, qx;
+    private Switch separation;
     private TextView textView, tv_ts;
 
 
@@ -51,6 +54,10 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_OVERLAY = 4444;
     private boolean flag = true;
 
+    private boolean isSeparation; //记录是否是分身模式
+    private SharedPreferences sp;
+    private SharedPreferences.Editor edit;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,6 +65,8 @@ public class MainActivity extends AppCompatActivity {
             getSupportActionBar().hide();
         }
         setContentView(R.layout.activity_main);
+        sp = getSharedPreferences("data", MODE_PRIVATE);
+        edit = sp.edit();
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         check();
         requestOverlayPermission();
@@ -75,10 +84,10 @@ public class MainActivity extends AppCompatActivity {
         relativeLayoutButoon = (RelativeLayout) LayoutInflater.from(getApplication()).inflate(R.layout.button, null);
         relativeLayoutToast = (RelativeLayout) LayoutInflater.from(getApplication()).inflate(R.layout.toast, null);
         button = relativeLayoutButoon.findViewById(R.id.btn_floatWindows);
-        line1 = relativeLayout.findViewById(R.id.line1);
         but1 = relativeLayout.findViewById(R.id.but1);
         but2 = relativeLayout.findViewById(R.id.but2);
         but3 = relativeLayout.findViewById(R.id.but3);
+        separation = relativeLayout.findViewById(R.id.separation);
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -102,9 +111,8 @@ public class MainActivity extends AppCompatActivity {
                 lp.format = PixelFormat.TRANSPARENT;
                 if (flag) {
                     windowManager.addView(relativeLayoutButoon, lp);
-                    Toast.makeText(getApplication(), "长按返回可关闭悬浮窗", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplication(), "长按返回可关闭悬浮窗", Toast.LENGTH_LONG).show();
                     flag = false;
-                    finish();
                 }
                 try {
                     PackageManager packageManager = getPackageManager();
@@ -140,9 +148,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-
         FileUtils.getAPPLocalVersion(MainActivity.this);
-
 
         button.setOnTouchListener(new View.OnTouchListener() {
             private float lastX; //上一次位置的X.Y坐标
@@ -190,7 +196,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 windowManager.removeView(relativeLayoutButoon);
-                lp.width = WindowManager.LayoutParams.WRAP_CONTENT;
+                lp.width = WindowManager.LayoutParams.MATCH_PARENT;
                 lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
                 lp.gravity = Gravity.CENTER;
                 windowManager.addView(relativeLayout, lp);
@@ -200,11 +206,16 @@ public class MainActivity extends AppCompatActivity {
         but1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                boolean is = FileUtils.getAll(MainActivity.this, FileUtils.mFilePath);
-                if (is) {
-                    ToastShow("破解完成");
+                boolean b = FileUtils.setBasePath(getApplicationContext(), isSeparation);
+                if (b) {
+                    boolean is = FileUtils.getAll(MainActivity.this, FileUtils.mFilePath);
+                    if (is) {
+                        ToastShow("破解完成");
+                    } else {
+                        ToastShow("破解失败");
+                    }
                 } else {
-                    ToastShow("破解失败");
+                    ToastShow("暂时还不兼容次机型分身破解，联系作者添加");
                 }
             }
         });
@@ -216,7 +227,6 @@ public class MainActivity extends AppCompatActivity {
                 intent.setClass(getApplicationContext(), SZ.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 getApplicationContext().startActivity(intent);
-//                ToastShow("我经过了！");
                 return true;
             }
         });
@@ -224,9 +234,14 @@ public class MainActivity extends AppCompatActivity {
         but2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                boolean is = FileUtils.deleteAllFiles(new File(FileUtils.mFilePath));
-                if (is) {
-                    ToastShow("初始化完成");
+                boolean b = FileUtils.setBasePath(getApplicationContext(), isSeparation);
+                if (b) {
+                    boolean is = FileUtils.deleteAllFiles(new File(FileUtils.mFilePath));
+                    if (is) {
+                        ToastShow("初始化完成");
+                    }
+                } else {
+                    ToastShow("暂时还不兼容次机型分身破解，联系作者添加");
                 }
             }
         });
@@ -241,12 +256,30 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        but3.setOnLongClickListener(new View.OnLongClickListener() {
+//        but3.setOnLongClickListener(new View.OnLongClickListener() {
+//            @Override
+//            public boolean onLongClick(View v) {
+//                windowManager.removeView(relativeLayout);
+//                flag = true;
+//                return false;
+//            }
+//        });
+
+        isSeparation = sp.getBoolean("isSeparation", false);
+        System.out.println("======" + isSeparation);
+        separation.setOnCheckedChangeListener(null);
+        separation.setChecked(isSeparation);
+        separation.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
-            public boolean onLongClick(View v) {
-                windowManager.removeView(relativeLayout);
-                flag = true;
-                return false;
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    ToastShow("你选择的破解分身");
+                } else {
+                    ToastShow("你选择的破解普通");
+                }
+                isSeparation = isChecked;
+                edit.putBoolean("isSeparation", isChecked);
+                edit.commit();
             }
         });
     }
@@ -333,4 +366,35 @@ public class MainActivity extends AppCompatActivity {
             windowManager.addView(relativeLayoutButoon, lp);
         }
     };
+
+    public void execCommand(String command) throws IOException {
+        // start the ls command running
+        //String[] args =  new String[]{"sh", "-c", command};
+        Runtime runtime = Runtime.getRuntime();
+        Process proc = runtime.exec(command);      //这句话就是shell与高级语言间的调用
+        //如果有参数的话可以用另外一个被重载的exec方法
+        //实际上这样执行时启动了一个子进程,它没有父进程的控制台
+        //也就看不到输出,所以我们需要用输出流来得到shell执行后的输出
+        InputStream inputstream = proc.getInputStream();
+        InputStreamReader inputstreamreader = new InputStreamReader(inputstream);
+        BufferedReader bufferedreader = new BufferedReader(inputstreamreader);
+        // read the ls output
+        String line = "";
+        StringBuilder sb = new StringBuilder(line);
+        while ((line = bufferedreader.readLine()) != null) {
+            //System.out.println(line);
+            sb.append(line);
+        }
+        System.out.println("=====" + sb.toString());
+        //使用exec执行不会等执行成功以后才返回,它会立即返回
+        //所以在某些情况下是很要命的(比如复制文件的时候)
+        //使用wairFor()可以等待命令执行完成以后才返回
+        try {
+            if (proc.waitFor() != 0) {
+                System.err.println("exit value = " + proc.exitValue());
+            }
+        } catch (InterruptedException e) {
+            System.err.println(e);
+        }
+    }
 }
