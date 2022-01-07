@@ -33,6 +33,14 @@
             android:layout_centerInParent="true"
             android:text="获取权限"
             android:visibility="gone" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:onClick="test"
+            android:text="测试"
+            android:visibility="gone" />
     </LinearLayout>
 
     <TextView
@@ -50,7 +58,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:focusable="false"
-        android:text="\n1、此版本适用于最新版QQ版本\n2、点击进入破解按钮即可进入破解模式\n3、破解前先初始化，初始化完成后，点开闪照，会出现'按住屏幕可查看5秒',不要点击！(否则不能破解)再点击开始破解，提示破解完成则破解成功" />
+        android:text="\n1、此版本适用于最新版QQ版本\n2、点击进入破解按钮即可进入破解模式\n3、破解前先初始化，初始化完成后，点开闪照，会出现'按住屏幕可查看5秒',不要点击！(否则不能破解)再点击开始破解，提示破解完成则破解成功
+\n4、由于系统高于或等于Android 11,需要授权获取文件权限,拒绝则无法使用!" />
 
     <TextView
         android:id="@+id/ts1"
@@ -74,8 +83,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/ts2"
+        android:layout_centerHorizontal="true"
         android:text="仅供学习交流，请勿用于商用"
         android:textColor="#D60808"
-        android:layout_centerHorizontal="true"
         android:textSize="15sp" />
 </RelativeLayout>
